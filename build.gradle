@@ -1,0 +1,88 @@
+import java.text.SimpleDateFormat
+
+apply plugin: 'maven'
+apply plugin: 'war'
+apply from: 'gretty.plugin'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+war {
+    manifest {
+        attributes 'Title': 'Simter SSO Server',
+                'Version': version,
+                'Author': 'dragon',
+                'BuildTime': "${buildTime()}"
+    }
+}
+gretty {
+  httpPort = 8081
+  contextPath = '/'
+  servletContainer = 'jetty9' // jetty7, jetty8, jetty9, tomcat7, tomcat8
+}
+
+repositories {
+    mavenLocal()
+    maven {url "http://192.168.0.222:8081/nexus/content/groups/public/"} 
+    jcenter()
+    //mavenCentral()
+}
+
+configurations {
+    // 排除的 jar
+    compile.exclude module: 'commons-logging'
+    compile.exclude module: 'log4j'
+}
+dependencies {
+    // log
+    compile "org.slf4j:slf4j-api:$slf4jVersion"
+    runtime "org.slf4j:jcl-over-slf4j:$slf4jVersion"
+    runtime "org.slf4j:log4j-over-slf4j:$slf4jVersion"
+    runtime "ch.qos.logback:logback-classic:$logbackVersion"
+
+    // web
+    providedCompile "javax.servlet:javax.servlet-api:$servletVersion"
+
+    // spring
+    compile "org.springframework:spring-context:$springVersion"
+
+    // test
+    testCompile "junit:junit:$junitVersion"
+
+    // simter
+    compile "org.simter:simter-sso-core:$version"
+}
+
+// 初始化项目目录结构
+task createJavaProject << {
+    sourceSets*.java.srcDirs*.each { it.mkdirs() }
+    sourceSets*.resources.srcDirs*.each { it.mkdirs()}
+}
+task createWebProject(dependsOn: 'createJavaProject') << {
+  def webAppDir = file("$webAppDirName")
+  webAppDir.mkdirs()
+}
+
+// 列出编译时依赖的 jar
+task listCompileJars << {
+    configurations.compile.each { File file -> println file.name }
+}
+// 列出运行时依赖的 jar
+task listRuntimeJars << {
+    configurations.runtime.each { File file -> println file.name }
+}
+// 列出测试编译时依赖的 jar
+task listTestCompileJars << {
+    configurations.testCompile.each { File file -> println file.name }
+}
+// 列出测试运行时依赖的 jar
+task listTestRuntimeJars << {
+    configurations.testRuntime.each { File file -> println file.name }
+}
+
+// 获取当前时间
+def buildTime() {
+    def df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    //df.setTimeZone(TimeZone.getTimeZone("UTC"))
+    return df.format(new Date())
+}

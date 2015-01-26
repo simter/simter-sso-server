@@ -1,0 +1,22 @@
+buildscript {
+  repositories {
+    mavenLocal()
+    maven {url "http://192.168.0.222:8081/nexus/content/groups/public/"}
+    jcenter()
+    //mavenCentral()
+  }
+  
+  dependencies {
+    classpath 'org.akhikhl.gretty:gretty:1.1.8'
+  }
+}
+
+repositories {
+    mavenLocal()
+    maven {url "http://192.168.0.222:8081/nexus/content/groups/public/"}
+    jcenter()
+    //mavenCentral()
+}
+
+if (!project.plugins.findPlugin(org.akhikhl.gretty.GrettyPlugin))
+  project.apply(plugin: org.akhikhl.gretty.GrettyPlugin)
